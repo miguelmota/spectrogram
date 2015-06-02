@@ -1,6 +1,6 @@
 {
   "name": "spectogram",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Audio spectogram in canvas.",
   "main": "spectogram.js",
   "directories": {
