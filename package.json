@@ -1,0 +1,43 @@
+{
+  "name": "spectogram",
+  "version": "0.0.1",
+  "description": "Audio spectogram in canvas.",
+  "main": "spectogram.js",
+  "directories": {
+    "test": "test"
+  },
+  "files": [
+    "spectogram.js"
+  ],
+  "scripts": {
+    "test": "./node_modules/tape/bin/tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miguelmota/spectogram"
+  },
+  "keywords": [
+    "audio",
+    "spectogram",
+    "canvas"
+  ],
+  "author": {
+    "name": "Miguel Mota",
+    "email": "hello@miguelmota.com",
+    "url": "http://www.miguelmota.com/"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/miguelmota/spectogram/blob/master/LICENSE.md"
+  },
+  "bugs": {
+    "url": "https://github.com/miguelmota/spectogram/issues"
+  },
+  "homepage": "https://github.com/miguelmota/spectogram",
+  "devDependencies": {
+    "tape": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  }
+}
