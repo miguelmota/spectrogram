@@ -21,33 +21,20 @@ function init() {
     alert('No web audio support in this browser!');
   }
 
-  navigator.getUserMedia({
-    audio: true
-  }, startUserMedia, userMediaError);
-}
+  var request = new XMLHttpRequest();
+  request.open('GET', 'media/ethos-final-hope.mp3', true);
+  request.responseType = 'arraybuffer';
 
-function startUserMedia(stream) {
-  var streamSource = audioContext.createMediaStreamSource(stream);
-  oscilloscope.addSource(streamSource);
-}
-
-function userMediaError(error) {
-  console.error(error);
-}
-
-var request = new XMLHttpRequest();
-request.open('GET', 'media/ethos-final-hope.mp3', true);
-request.responseType = 'arraybuffer';
-
-request.onload = function() {
-  audioContext.decodeAudioData(request.response, function(buffer) {
-    AudioBufferSlice(buffer, 50000, 120000, function(error, buf) {
-      //specto.addSource(buf, audioContext);
-      //specto.start();
+  request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+      AudioBufferSlice(buffer, 50000, 120000, function(error, buf) {
+        specto.addSource(buf, audioContext);
+        specto.start();
+      });
     });
-  });
-};
+  };
 
-request.send();
+  request.send();
+}
 
 window.onload = init;
