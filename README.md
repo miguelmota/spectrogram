@@ -23,6 +23,8 @@ bower install spectogram
 ```javascript
 var spectogram = require('spectogram');
 
+var specto = Spectogram(document.getElementById('canvas'));
+
 var audioContext = new audioContext();
 var request = new XMLHttpRequest();
 request.open('GET', 'audio.mp3', true);
