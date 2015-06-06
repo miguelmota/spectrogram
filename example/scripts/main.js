@@ -6,7 +6,7 @@ var audioContext;
 var specto;
 
 function init() {
-  specto = Spectogram(document.getElementById('canvas'), {
+  specto = Spectrogram(document.getElementById('canvas'), {
     canvas: {
       width: function() {
         return window.innerWidth;

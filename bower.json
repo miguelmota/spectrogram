@@ -1,15 +1,15 @@
 {
-  "name": "spectogram",
-  "main": "spectogram.js",
+  "name": "spectrogram",
+  "main": "spectrogram.js",
   "version": "0.0.2",
-  "homepage": "https://github.com/miguelmota/spectogram",
+  "homepage": "https://github.com/miguelmota/spectrogram",
   "authors": [
     "Miguel Mota <miguelmota2@gmail.com>"
   ],
-  "description": "Audio spectogram in canvas.",
+  "description": "Audio spectrogram in canvas.",
   "keywords": [
     "audio",
-    "spectogram",
+    "spectrogram",
     "canvas"
   ],
   "ignore": [

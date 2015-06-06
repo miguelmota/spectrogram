@@ -1,29 +1,29 @@
-# spectogram
+# spectrogram
 
-> Audio spectogram in canvas.
+> Audio spectrogram in canvas.
 
-[![NPM](https://nodei.co/npm/spectogram.png)](https://nodei.co/npm/spectogram)
+[![NPM](https://nodei.co/npm/spectrogram.png)](https://nodei.co/npm/spectrogram)
 
 # Demo
 
-[http://lab.moogs.io/spectogram](http://lab.moogs.io/spectogram)
+[http://lab.moogs.io/spectrogram](http://lab.moogs.io/spectrogram)
 
 # Install
 
 ```bash
-npm install spectogram
+npm install spectrogram
 ```
 
 ```bash
-bower install spectogram
+bower install spectrogram
 ```
 
 # Usage
 
 ```javascript
-var spectogram = require('spectogram');
+var spectrogram = require('spectrogram');
 
-var specto = Spectogram(document.getElementById('canvas'));
+var specto = Spectrogram(document.getElementById('canvas'));
 
 var audioContext = new audioContext();
 var request = new XMLHttpRequest();
