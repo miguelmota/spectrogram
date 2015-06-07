@@ -23,7 +23,7 @@ bower install spectrogram
 ```javascript
 var spectrogram = require('spectrogram');
 
-var specto = Spectrogram(document.getElementById('canvas'));
+var spectro = Spectrogram(document.getElementById('canvas'));
 
 var audioContext = new audioContext();
 var request = new XMLHttpRequest();
@@ -32,8 +32,8 @@ request.responseType = 'arraybuffer';
 
 request.onload = function() {
   audioContext.decodeAudioData(request.response, function(buffer) {
-    specto.addSource(buffer, audioContext);
-    specto.start();
+    spectro.addSource(buffer, audioContext);
+    spectro.start();
   });
 };
 

@@ -3,10 +3,10 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
 window.URL = window.URL || window.webkitURL;
 
 var audioContext;
-var specto;
+var spectro;
 
 function init() {
-  specto = Spectrogram(document.getElementById('canvas'), {
+  spectro = Spectrogram(document.getElementById('canvas'), {
     canvas: {
       width: function() {
         return window.innerWidth;
@@ -28,8 +28,8 @@ function init() {
   request.onload = function() {
     audioContext.decodeAudioData(request.response, function(buffer) {
       AudioBufferSlice(buffer, 50000, 120000, function(error, buf) {
-        specto.addSource(buf, audioContext);
-        specto.start();
+        spectro.addSource(buf, audioContext);
+        spectro.start();
       });
     });
   };
