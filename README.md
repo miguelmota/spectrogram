@@ -24,21 +24,14 @@ bower install spectrogram
 
 Take a look at the [full example][].
 
+### Spectrogram of an audio file buffer
+
 ```javascript
 var spectrogram = require('spectrogram');
 
 var spectro = Spectrogram(document.getElementById('canvas'), {
   audio: {
-    enable: true
-  },
-  colors: function(steps) {
-    var colors = [];
-
-    for (var i = 0; i < steps; ++i) {
-      // generate custom colors
-    }
-
-    return colors;
+    enable: false
   }
 });
 
@@ -57,7 +50,32 @@ request.onload = function() {
 request.send();
 ```
 
-By default the colors are grayscale. You can generate custom colors using a color scale library such as [chroma.js](https://github.com/gka/chroma.js);
+### Live input stream with [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia).
+
+```javascript
+navigator.getUserMedia({
+  video: false,
+  audio: true
+},
+function(stream) {
+  var input = audioContext.createMediaStreamSource(stream);
+  var analyser = audioContext.createAnalyser();
+
+  analyser.smoothingTimeConstant = 0;
+  analyser.fftSize = 2048;
+
+  input.connect(analyser);
+
+  spectro.connectSource(analyser, audioContext);
+  spectro.start();
+}, function(error) {
+
+});
+```
+
+### Custom color spectrum
+
+By default the colors are grayscale. You can generate a custom color spectrum using a color scale library such as [chroma.js](https://github.com/gka/chroma.js).
 
 ```javascript
 var spectro = Spectrogram(..., {

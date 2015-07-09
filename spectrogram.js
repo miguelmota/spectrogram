@@ -197,7 +197,7 @@
 
   Spectrogram.prototype.stop = function() {
     var source = this._sources[0];
-    if (source.sourceNode) {
+    if (source && source.sourceNode) {
       source.sourceNode.stop();
     }
     this._audioEnded = true;
@@ -236,7 +236,7 @@
   };
 
   Spectrogram.prototype._generateDefaultColors = function(steps) {
-    var frequency = (Math.PI) / steps;
+    var frequency = Math.PI / steps;
     var amplitude = 127;
     var center = 128;
     var slice = (Math.PI / 2) * 3.1;
@@ -249,7 +249,7 @@
     for (var i = 0; i < steps; i++) {
       var v = (Math.sin((frequency * i) + slice) * amplitude + center) >> 0;
 
-      colors.push(toRGBString(v>>0));
+      colors.push(toRGBString(v));
     }
 
     return colors;

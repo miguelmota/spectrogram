@@ -1,9 +1,13 @@
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
 window.URL = window.URL || window.webkitURL;
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
 var audioContext;
 var spectro;
+var songBuffer;
+var microphoneButton;
+var songButton;
 
 function init() {
   spectro = Spectrogram(document.getElementById('canvas'), {
@@ -16,7 +20,7 @@ function init() {
     audio: {
       enable: true
     },
-    color: function(steps) {
+    colors: function(steps) {
       var baseColors = [[0,0,255,1], [0,255,255,1], [0,255,0,1], [255,255,0,1], [ 255,0,0,1]];
       var positions = [0, 0.15, 0.30, 0.50, 0.75];
 
@@ -51,14 +55,61 @@ function init() {
 
   request.onload = function() {
     audioContext.decodeAudioData(request.response, function(buffer) {
-      AudioBufferSlice(buffer, 50000, 120000, function(error, buf) {
-        spectro.connectSource(buf, audioContext);
-        spectro.start();
+      AudioBufferSlice(buffer, 50000, 170000, function(error, buf) {
+        songBuffer = buf;
+        songButton.disabled = false;
       });
     });
   };
 
   request.send();
+
+  microphoneButton = document.getElementById('btn-microphone');
+  songButton = document.getElementById('btn-song');
+
+  microphoneButton.disabled = false;
+
+  microphoneButton.addEventListener('click', requestMic, false);
+  songButton.addEventListener('click', playSong, false);
 }
 
-window.onload = init;
+function playSong() {
+  spectro.connectSource(songBuffer, audioContext);
+  spectro.start();
+
+  songButton.parentNode.removeChild(songButton);
+  microphoneButton.parentNode.removeChild(microphoneButton);
+}
+
+function requestMic() {
+  navigator.getUserMedia({
+    video: false,
+    audio: true
+  },
+  function(stream) {
+    handleMicStream(stream);
+
+    microphoneButton.parentNode.removeChild(microphoneButton);
+    songButton.parentNode.removeChild(songButton);
+  }, handleMicError);
+}
+
+function handleMicStream(stream) {
+  var input = audioContext.createMediaStreamSource(stream);
+  var analyser = audioContext.createAnalyser();
+
+  analyser.smoothingTimeConstant = 0;
+  analyser.fftSize = 2048;
+
+  input.connect(analyser);
+
+  spectro.connectSource(analyser, audioContext);
+  spectro.start();
+}
+
+function handleMicError(error) {
+  alert(error);
+  console.log(error);
+}
+
+window.addEventListener('load', init, false);
