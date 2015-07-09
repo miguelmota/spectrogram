@@ -24,7 +24,7 @@ bower install spectrogram
 
 Take a look at the [full example][].
 
-### Spectrogram of an audio file buffer
+#### Spectrogram of an audio file buffer
 
 ```javascript
 var spectrogram = require('spectrogram');
@@ -50,7 +50,7 @@ request.onload = function() {
 request.send();
 ```
 
-### Live input stream with [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia).
+#### Live input stream with [getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getUserMedia).
 
 ```javascript
 navigator.getUserMedia({
