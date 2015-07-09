@@ -39,16 +39,11 @@ function init() {
       var scale = new chroma.scale(baseColors, positions)
       .domain([0, steps]);
 
-      function toRGBString(rgb) {
-        return 'rgba(' + rgb.map(function(x) { return x>>0; }).toString() + ')';
-      }
-
       var colors = [];
 
       for (var i = 0; i < steps; ++i) {
         var color = scale(i);
-        color = toRGBString(color._rgb || color);
-        colors.push(color);
+        colors.push(color.hex());
       }
 
       return colors;

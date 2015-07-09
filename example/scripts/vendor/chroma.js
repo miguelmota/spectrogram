@@ -33,40 +33,6 @@
  *
  */
 
-
-/*
-    chroma.js
-
-    Copyright (c) 2011-2013, Gregor Aisch
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
-
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-
-    * The name Gregor Aisch may not be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL GREGOR AISCH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-    OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    @source: https://github.com/gka/chroma.js
- */
-
 (function() {
   var Color, LAB_CONSTANTS, PI, PITHIRD, TWOPI, _guess_formats, _guess_formats_sorted, _input, _interpolators, abs, atan2, bezier, blend, blend_f, brewer, burn, chroma, clip_rgb, cmyk2rgb, colors, cos, css2rgb, darken, dodge, each, floor, hex2rgb, hsi2rgb, hsl2css, hsl2rgb, hsv2rgb, interpolate, interpolate_hsx, interpolate_lab, interpolate_num, interpolate_rgb, lab2lch, lab2rgb, lab_xyz, lch2lab, lch2rgb, lighten, limit, log, luminance_x, m, max, multiply, normal, num2rgb, overlay, pow, rgb2cmyk, rgb2css, rgb2hex, rgb2hsi, rgb2hsl, rgb2hsv, rgb2lab, rgb2lch, rgb2luminance, rgb2num, rgb2temperature, rgb2xyz, rgb_xyz, rnd, root, round, screen, sin, sqrt, temperature2rgb, type, unpack, w3cx11, xyz_lab, xyz_rgb,
     slice = [].slice;
@@ -169,7 +135,7 @@
     root.chroma = chroma;
   }
 
-  chroma.version = '1.0.1';
+  chroma.version = '1.0.2';
 
 
   /**
@@ -489,17 +455,18 @@
   chroma.colors = colors = w3cx11;
 
   lab2rgb = function() {
-    var a, b, g, l, r, ref, ref1, ref2, x, y, z;
-    ref = unpack(arguments), l = ref[0], a = ref[1], b = ref[2];
+    var a, args, b, g, l, r, ref, ref1, x, y, z;
+    args = unpack(arguments);
+    l = args[0], a = args[1], b = args[2];
 
     /*
     adapted to match d3 implementation
      */
     if (l !== void 0 && l.length === 3) {
-      ref1 = l, l = ref1[0], a = ref1[1], b = ref1[2];
+      ref = l, l = ref[0], a = ref[1], b = ref[2];
     }
     if (l !== void 0 && l.length === 3) {
-      ref2 = l, l = ref2[0], a = ref2[1], b = ref2[2];
+      ref1 = l, l = ref1[0], a = ref1[1], b = ref1[2];
     }
     y = (l + 16) / 116;
     x = y + a / 500;
@@ -510,7 +477,7 @@
     r = xyz_rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z);
     g = xyz_rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z);
     b = xyz_rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z);
-    return [limit(r, 0, 255), limit(g, 0, 255), limit(b, 0, 255), 1];
+    return [limit(r, 0, 255), limit(g, 0, 255), limit(b, 0, 255), args.length > 3 ? args[3] : 1];
   };
 
   lab_xyz = function(x) {
@@ -672,7 +639,9 @@
     return I;
   };
 
-  chroma.bezier = bezier;
+  chroma.bezier = function(colors) {
+    return chroma.scale(bezier(colors));
+  };
 
 
   /*
@@ -885,8 +854,9 @@
   });
 
   hsl2rgb = function() {
-    var b, c, g, h, i, l, o, r, ref, ref1, s, t1, t2, t3;
-    ref = unpack(arguments), h = ref[0], s = ref[1], l = ref[2];
+    var args, b, c, g, h, i, l, o, r, ref, s, t1, t2, t3;
+    args = unpack(arguments);
+    h = args[0], s = args[1], l = args[2];
     if (s === 0) {
       r = g = b = l * 255;
     } else {
@@ -915,10 +885,10 @@
           c[i] = t1;
         }
       }
-      ref1 = [round(c[0] * 255), round(c[1] * 255), round(c[2] * 255)], r = ref1[0], g = ref1[1], b = ref1[2];
+      ref = [round(c[0] * 255), round(c[1] * 255), round(c[2] * 255)], r = ref[0], g = ref[1], b = ref[2];
     }
-    if (arguments.length === 4) {
-      return [r, g, b, arguments[3]];
+    if (args.length > 3) {
+      return [r, g, b, args[3]];
     } else {
       return [r, g, b];
     }
@@ -970,8 +940,9 @@
   };
 
   hsv2rgb = function() {
-    var b, f, g, h, i, p, q, r, ref, ref1, ref2, ref3, ref4, ref5, ref6, s, t, v;
-    ref = unpack(arguments), h = ref[0], s = ref[1], v = ref[2];
+    var args, b, f, g, h, i, p, q, r, ref, ref1, ref2, ref3, ref4, ref5, s, t, v;
+    args = unpack(arguments);
+    h = args[0], s = args[1], v = args[2];
     v *= 255;
     if (s === 0) {
       r = g = b = v;
@@ -993,28 +964,28 @@
       t = v * (1 - s * (1 - f));
       switch (i) {
         case 0:
-          ref1 = [v, t, p], r = ref1[0], g = ref1[1], b = ref1[2];
+          ref = [v, t, p], r = ref[0], g = ref[1], b = ref[2];
           break;
         case 1:
-          ref2 = [q, v, p], r = ref2[0], g = ref2[1], b = ref2[2];
+          ref1 = [q, v, p], r = ref1[0], g = ref1[1], b = ref1[2];
           break;
         case 2:
-          ref3 = [p, v, t], r = ref3[0], g = ref3[1], b = ref3[2];
+          ref2 = [p, v, t], r = ref2[0], g = ref2[1], b = ref2[2];
           break;
         case 3:
-          ref4 = [p, q, v], r = ref4[0], g = ref4[1], b = ref4[2];
+          ref3 = [p, q, v], r = ref3[0], g = ref3[1], b = ref3[2];
           break;
         case 4:
-          ref5 = [t, p, v], r = ref5[0], g = ref5[1], b = ref5[2];
+          ref4 = [t, p, v], r = ref4[0], g = ref4[1], b = ref4[2];
           break;
         case 5:
-          ref6 = [v, p, q], r = ref6[0], g = ref6[1], b = ref6[2];
+          ref5 = [v, p, q], r = ref5[0], g = ref5[1], b = ref5[2];
       }
     }
     r = round(r);
     g = round(g);
     b = round(b);
-    return [r, g, b];
+    return [r, g, b, args.length > 3 ? args[3] : 1];
   };
 
   rgb2hsv = function() {
@@ -1082,8 +1053,11 @@
     return new Color(num, 'num');
   };
 
-  Color.prototype.num = function() {
-    return rgb2num(this._rgb);
+  Color.prototype.num = function(mode) {
+    if (mode == null) {
+      mode = 'rgb';
+    }
+    return rgb2num(this._rgb, mode);
   };
 
   _input.num = num2rgb;
@@ -1240,11 +1214,12 @@
   };
 
   lch2rgb = function() {
-    var L, a, b, c, g, h, l, r, ref, ref1, ref2;
-    ref = unpack(arguments), l = ref[0], c = ref[1], h = ref[2];
-    ref1 = lch2lab(l, c, h), L = ref1[0], a = ref1[1], b = ref1[2];
-    ref2 = lab2rgb(L, a, b), r = ref2[0], g = ref2[1], b = ref2[2];
-    return [limit(r, 0, 255), limit(g, 0, 255), limit(b, 0, 255)];
+    var L, a, args, b, c, g, h, l, r, ref, ref1;
+    args = unpack(arguments);
+    l = args[0], c = args[1], h = args[2];
+    ref = lch2lab(l, c, h), L = ref[0], a = ref[1], b = ref[2];
+    ref1 = lab2rgb(L, a, b), r = ref1[0], g = ref1[1], b = ref1[2];
+    return [limit(r, 0, 255), limit(g, 0, 255), limit(b, 0, 255), args.length > 3 ? args[3] : 1];
   };
 
   lab2lch = function() {
@@ -1308,21 +1283,21 @@
   };
 
   cmyk2rgb = function() {
-    var b, c, g, k, m, r, ref, y;
-    ref = unpack(arguments), c = ref[0], m = ref[1], y = ref[2], k = ref[3];
+    var alpha, args, b, c, g, k, m, r, y;
+    args = unpack(arguments);
+    c = args[0], m = args[1], y = args[2], k = args[3];
+    alpha = args.length > 4 ? args[4] : 1;
     if (k === 1) {
-      return [0, 0, 0];
+      return [0, 0, 0, alpha];
     }
     r = c >= 1 ? 0 : round(255 * (1 - c) * (1 - k));
     g = m >= 1 ? 0 : round(255 * (1 - m) * (1 - k));
     b = y >= 1 ? 0 : round(255 * (1 - y) * (1 - k));
-    return [r, g, b];
+    return [r, g, b, alpha];
   };
 
   _input.cmyk = function() {
-    var c, k, m, ref, y;
-    ref = unpack(arguments), c = ref[0], m = ref[1], y = ref[2], k = ref[3];
-    return cmyk2rgb(c, m, y, k);
+    return cmyk2rgb(unpack(arguments));
   };
 
   chroma.cmyk = function() {
@@ -1688,40 +1663,6 @@
 
   chroma.blend = blend;
 
-
-  /*
-      chroma.js
-  
-      Copyright (c) 2011-2013, Gregor Aisch
-      All rights reserved.
-  
-      Redistribution and use in source and binary forms, with or without
-      modification, are permitted provided that the following conditions are met:
-  
-      * Redistributions of source code must retain the above copyright notice, this
-        list of conditions and the following disclaimer.
-  
-      * Redistributions in binary form must reproduce the above copyright notice,
-        this list of conditions and the following disclaimer in the documentation
-        and/or other materials provided with the distribution.
-  
-      * The name Gregor Aisch may not be used to endorse or promote products
-        derived from this software without specific prior written permission.
-  
-      THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-      IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-      DISCLAIMED. IN NO EVENT SHALL GREGOR AISCH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-      DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-      OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-      NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-      EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
-      @source: https://github.com/gka/chroma.js
-   */
-
   chroma.scale = function(colors, positions) {
     var _colorCache, _colors, _correctLightness, _domain, _fixed, _max, _min, _mode, _nacol, _numClasses, _out, _pos, _spread, classifyValue, f, getClass, getColor, resetCache, setColors, setDomain, tmap;
     _mode = 'rgb';
@@ -1824,7 +1765,6 @@
           c = getClass(val);
           t = c / (_numClasses - 1);
         } else {
-          t = f0 = _min !== _max ? (val - _min) / (_max - _min) : 0;
           t = f0 = (val - _min) / (_max - _min);
           t = Math.min(1, Math.max(0, t));
         }
@@ -1868,7 +1808,7 @@
     setColors(colors, positions);
     f = function(v) {
       var c;
-      c = getColor(v);
+      c = chroma(getColor(v));
       if (_out && c[_out]) {
         return c[_out]();
       } else {
@@ -2012,40 +1952,6 @@
   chroma.scales.hot = function() {
     return chroma.scale(['#000', '#f00', '#ff0', '#fff'], [0, .25, .75, 1]).mode('rgb');
   };
-
-
-  /*
-      chroma.js
-  
-      Copyright (c) 2011-2013, Gregor Aisch
-      All rights reserved.
-  
-      Redistribution and use in source and binary forms, with or without
-      modification, are permitted provided that the following conditions are met:
-  
-      * Redistributions of source code must retain the above copyright notice, this
-        list of conditions and the following disclaimer.
-  
-      * Redistributions in binary form must reproduce the above copyright notice,
-        this list of conditions and the following disclaimer in the documentation
-        and/or other materials provided with the distribution.
-  
-      * The name Gregor Aisch may not be used to endorse or promote products
-        derived from this software without specific prior written permission.
-  
-      THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-      IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-      DISCLAIMED. IN NO EVENT SHALL GREGOR AISCH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-      DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-      OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-      NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-      EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
-      @source: https://github.com/gka/chroma.js
-   */
 
   chroma.analyze = function(data, key, filter) {
     var add, k, len, o, r, val, visit;
@@ -2251,8 +2157,9 @@
     borrowed from here:
     http://hummer.stanford.edu/museinfo/doc/examples/humdrum/keyscape2/hsi2rgb.cpp
      */
-    var b, g, r, ref;
-    ref = unpack(arguments), h = ref[0], s = ref[1], i = ref[2];
+    var args, b, g, r;
+    args = unpack(arguments);
+    h = args[0], s = args[1], i = args[2];
     h /= 360;
     if (h < 1 / 3) {
       b = (1 - s) / 3;
@@ -2272,7 +2179,7 @@
     r = limit(i * r * 3);
     g = limit(i * g * 3);
     b = limit(i * b * 3);
-    return [r * 255, g * 255, b * 255];
+    return [r * 255, g * 255, b * 255, args.length > 3 ? args[3] : 1];
   };
 
   rgb2hsi = function() {
