@@ -5,9 +5,21 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 
 var audioContext;
 var spectro;
-var songBuffer;
 var microphoneButton;
 var songButton;
+var songSelect;
+var selectedMedia;
+
+var media = [
+  {
+    file: 'media/aphex_twins_equation.mp3',
+    slice: {start: 320000, end: 340000}
+  },
+  {
+    file: 'media/ethos_final_hope.mp3',
+    slice: {start: 50000, end: 170000}
+  }
+];
 
 function init() {
   spectro = Spectrogram(document.getElementById('canvas'), {
@@ -49,36 +61,50 @@ function init() {
     alert('No web audio support in this browser!');
   }
 
-  var request = new XMLHttpRequest();
-  request.open('GET', 'media/ethos-final-hope.mp3', true);
-  request.responseType = 'arraybuffer';
-
-  request.onload = function() {
-    audioContext.decodeAudioData(request.response, function(buffer) {
-      AudioBufferSlice(buffer, 50000, 170000, function(error, buf) {
-        songBuffer = buf;
-        songButton.disabled = false;
-      });
-    });
-  };
-
-  request.send();
-
   microphoneButton = document.getElementById('btn-microphone');
   songButton = document.getElementById('btn-song');
+  songSelect = document.getElementById('select-song');
 
   microphoneButton.disabled = false;
 
   microphoneButton.addEventListener('click', requestMic, false);
   songButton.addEventListener('click', playSong, false);
+  songSelect.addEventListener('change', selectMedia, false);
+
+  selectMedia();
+}
+
+function loadMedia(selectedMedia, callback) {
+  songButton.disabled = false;
+
+  var request = new XMLHttpRequest();
+  request.open('GET', selectedMedia.file, true);
+  request.responseType = 'arraybuffer';
+
+  request.onload = function() {
+    audioContext.decodeAudioData(request.response, function(buffer) {
+      var slice = selectedMedia.slice;
+      AudioBufferSlice(buffer, slice.start, slice.end, function(error, buf) {
+        callback(buf);
+      });
+    });
+  };
+
+  request.send();
+}
+
+function selectMedia() {
+  songButton.disabled = false;
+  selectedMedia = media[songSelect.value];
 }
 
 function playSong() {
-  spectro.connectSource(songBuffer, audioContext);
-  spectro.start();
+  loadMedia(selectedMedia, function(songBuffer) {
+    spectro.connectSource(songBuffer, audioContext);
+    spectro.start();
+  });
 
-  songButton.parentNode.removeChild(songButton);
-  microphoneButton.parentNode.removeChild(microphoneButton);
+  removeControls();
 }
 
 function requestMic() {
@@ -88,9 +114,7 @@ function requestMic() {
   },
   function(stream) {
     handleMicStream(stream);
-
-    microphoneButton.parentNode.removeChild(microphoneButton);
-    songButton.parentNode.removeChild(songButton);
+    removeControls();
   }, handleMicError);
 }
 
@@ -110,6 +134,12 @@ function handleMicStream(stream) {
 function handleMicError(error) {
   alert(error);
   console.log(error);
+}
+
+function removeControls() {
+  songSelect.parentNode.removeChild(songSelect);
+  songButton.parentNode.removeChild(songButton);
+  microphoneButton.parentNode.removeChild(microphoneButton);
 }
 
 window.addEventListener('load', init, false);
