@@ -1,389 +1,268 @@
 (function(root) {
   'use strict';
 
+  function _isFunction(v) {
+    return typeof v === 'function';
+  }
+
+  function _result(v) {
+    return _isFunction(v) ? v() : v;
+  }
+
+  var toString = Object.prototype.toString;
+
   function Spectrogram(canvas, options) {
     if (!(this instanceof Spectrogram)) {
       return new Spectrogram(canvas, options);
     }
 
-    this.context = null;
-    this.audioBuffer = null;
-    this.sourceNode = null;
-    this.scriptNode = null;
-    this.analyser = null;
-    this.canvas = canvas;
-    this.canvasContext = this.canvas.getContext('2d');
+    var baseCanvasOptions = options.canvas || {};
+    this._audioEnded = null;
+    this._paused = null;
+    this._pausedAt = null;
+    this._startedAt = null;
+    this._sources = {
+      audioBufferStream: null,
+      userMediaStream: null
+    };
+    this._baseCanvas = canvas;
+    this._baseCanvasContext = this._baseCanvas.getContext('2d');
 
-    this.canvas.width = options.canvas.width() || 1000;
-    this.canvas.height = options.canvas.height || 500;
+    this._baseCanvas.width = _result(baseCanvasOptions.width) || this._baseCanvas.width;
+    this._baseCanvas.height = _result(baseCanvasOptions.height) || this._baseCanvas.height;
 
-    this.tempCanvas = document.createElement('canvas');
-    this.tempCanvasContext = this.tempCanvas.getContext('2d');
-    this.tempCanvas.width = this.canvas.width;
-    this.tempCanvas.height = this.canvas.height;
-
-    var baseColors = ['#0000ff',  '#00ffff', '#00ff00', '#ffff00', '#ff0000'];
-    this.canvas.style.backgroundColor = baseColors[0];
-  }
-
-  Spectrogram.prototype.init = function() {
-    this.scriptNode = this.context.createScriptProcessor(2048, 1, 1);
-    this.scriptNode.connect(this.context.destination);
-    this.scriptNode.onaudioprocess = function() {
-      var array = new Uint8Array(this.analyser.frequencyBinCount);
-      this.analyser.getByteFrequencyData(array);
-
-      if (this.sourceNode.playbackState === this.sourceNode.PLAYING_STATE) {
-        this.draw(array);
-      }
+    window.onresize = function() {
+      this._baseCanvas.width = _result(baseCanvasOptions.width) || this._baseCanvas.width;
+      this._baseCanvas.height = _result(baseCanvasOptions.height) || this._baseCanvas.height;
     }.bind(this);
 
-    this.analyser = this.context.createAnalyser();
-    this.analyser.smoothingTimeConstant = 0;
-    this.analyser.fftSize = 1024;
+    var audioOptions = options.audio || {};
+    this.audio = audioOptions;
 
-    this.analyser.connect(this.scriptNode);
-    this.sourceNode.connect(this.analyser);
-    this.sourceNode.connect(this.context.destination);
+    var colors = [];
+
+    if (typeof options.colors === 'function') {
+      colors = options.colors(275);
+    } else {
+      colors = this._generateDefaultColors(275);
+    }
+
+    this._colors = colors;
+
+    this._baseCanvasContext.fillStyle = this._getColor(0);
+    this._baseCanvasContext.fillRect(0, 0, this._baseCanvas.width, this._baseCanvas.height);
+  }
+
+  Spectrogram.prototype._init = function() {
+    var source = this._sources.audioBufferStream;
+    source.scriptNode = source.audioContext.createScriptProcessor(2048, 1, 1);
+    source.scriptNode.connect(source.audioContext.destination);
+    source.scriptNode.onaudioprocess = function(event) {
+      var array = new Uint8Array(source.analyser.frequencyBinCount);
+      source.analyser.getByteFrequencyData(array);
+
+      this._draw(array, source.canvasContext);
+    }.bind(this);
+
+    source.sourceNode.onended = function() {
+      this.stop();
+    }.bind(this);
+
+    source.analyser = source.audioContext.createAnalyser();
+    source.analyser.smoothingTimeConstant = 0;
+    source.analyser.fftSize = 1024;
+
+    source.analyser.connect(source.scriptNode);
+    source.sourceNode.connect(source.analyser);
+    if (this.audio.enable) {
+      source.sourceNode.connect(source.audioContext.destination);
+    }
   };
 
-  Spectrogram.prototype.draw = function(array) {
-      var width = this.canvas.width;
-      var height = this.canvas.height;
-      this.tempCanvasContext.drawImage(this.canvas, 0, 0, width, height);
+  Spectrogram.prototype._draw = function(array, canvasContext) {
+      if (this._paused) {
+        return false;
+      }
+
+      var canvas = canvasContext.canvas;
+      var width = canvas.width;
+      var height = canvas.height;
+      var tempCanvasContext = canvasContext._tempContext;
+      var tempCanvas = tempCanvasContext.canvas;
+      tempCanvasContext.drawImage(canvas, 0, 0, width, height);
+
       for (var i = 0; i < array.length; i++) {
         var value = array[i];
-        this.canvasContext.fillStyle = this.getColor(value);
-        this.canvasContext.fillRect(width - 1, height - i, 1, 1);
+        canvasContext.fillStyle = this._getColor(value);
+        if (this._audioEnded) {
+          canvasContext.fillStyle = this._getColor(0);
+        }
+        canvasContext.fillRect(width - 1, height - i, 1, 1);
       }
-      this.canvasContext.translate(-1, 0);
-      this.canvasContext.drawImage(this.tempCanvas, 0, 0, width, height, 0, 0, width, height);
-      // reset transformation matrix
-      this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
-    };
 
-  Spectrogram.prototype.addSource = function(buffer, context) {
-    this.buffer = buffer;
-    this.context = buffer.context || context;
-    this.sourceNode = this.context.createBufferSource();
-    this.sourceNode.buffer = this.buffer;
-    this.init();
+      canvasContext.translate(-1, 0);
+      // draw prev canvas before translation
+      canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
+      canvasContext.drawImage(tempCanvas, 0, 0, width, height, 0, 0, width, height);
+      // reset transformation matrix
+      canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+
+      this._baseCanvasContext.drawImage(canvas, 0, 0, width, height);
   };
 
-  Spectrogram.prototype.start = function() {
-    this.sourceNode.start(0);
+  Spectrogram.prototype._startMediaStreamDraw = function(analyser, canvasContext) {
+    window.requestAnimationFrame(this._startMediaStreamDraw.bind(this, analyser, canvasContext));
+    var audioData = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(audioData);
+    this._draw(audioData, canvasContext);
+  };
+
+  Spectrogram.prototype.connectSource = function(audioBuffer, audioContext) {
+    var source = this._sources.audioBufferStream || {};
+
+    // clear current audio process
+    if (toString.call(source.scriptNode) === '[object ScriptProcessorNode]') {
+      source.scriptNode.onaudioprocess = null;
+    }
+
+    if (toString.call(audioBuffer) === '[object AudioBuffer]') {
+      audioContext = (!audioContext && source.audioBuffer.context) || (!audioContext && source.audioContext) || audioContext;
+
+      var sourceNode = audioContext.createBufferSource();
+      sourceNode.buffer = audioBuffer;
+
+      var canvasContext = source.canvasContext;
+
+      if (!source.canvasContext) {
+        var canvas = document.createElement('canvas');
+        canvas.width = this._baseCanvas.width;
+        canvas.height = this._baseCanvas.height;
+        canvasContext = canvas.getContext('2d');
+
+        var tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+
+        canvasContext._tempContext = tempCanvas.getContext('2d');
+      }
+
+      source = {
+        audioBuffer: audioBuffer,
+        audioContext: audioContext,
+        sourceNode: sourceNode,
+        analyser: null,
+        scriptNode: null,
+        canvasContext: canvasContext
+      };
+
+      this._sources.audioBufferStream = source;
+      this._init();
+    }
+
+    if (toString.call(audioBuffer) === '[object AnalyserNode]') {
+      source = this._sources.userMediaStream || {};
+      source.analyser = audioBuffer;
+      this._sources.userMediaStream = source;
+    }
+  };
+
+  Spectrogram.prototype.start = function(offset) {
+    var source = this._sources.audioBufferStream;
+    var sourceMedia = this._sources.userMediaStream;
+
+    if (source && source.sourceNode) {
+      source.sourceNode.start(0, offset||0);
+      this._audioEnded = false;
+      this._paused = false;
+      this._startedAt = Date.now();
+    }
+
+    // media stream uses an analyser for audio data
+    if (sourceMedia && sourceMedia.analyser) {
+      source = sourceMedia;
+      var canvas = document.createElement('canvas');
+      canvas.width = this._baseCanvas.width;
+      canvas.height = this._baseCanvas.height;
+      var canvasContext = canvas.getContext('2d');
+
+      var tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+
+      canvasContext._tempContext = tempCanvas.getContext('2d');
+
+      this._startMediaStreamDraw(source.analyser, canvasContext);
+    }
   };
 
   Spectrogram.prototype.stop = function() {
-    this.sourceNode.stop();
+    var source = this._sources[0];
+    if (source.sourceNode) {
+      source.sourceNode.stop();
+    }
+    this._audioEnded = true;
   };
 
-  Spectrogram.prototype.getColor = function(index) {
-    var colors = [
-      "#0000FF",
-      "#0005FF",
-      "#000BFF",
-      "#0011FF",
-      "#0016FF",
-      "#001CFF",
-      "#0022FF",
-      "#0027FF",
-      "#002DFF",
-      "#0033FF",
-      "#0038FF",
-      "#003EFF",
-      "#0044FF",
-      "#0049FF",
-      "#004FFF",
-      "#0055FF",
-      "#005AFF",
-      "#0060FF",
-      "#0066FF",
-      "#006BFF",
-      "#0071FF",
-      "#0077FF",
-      "#007CFF",
-      "#0082FF",
-      "#0088FF",
-      "#008DFF",
-      "#0093FF",
-      "#0099FF",
-      "#009EFF",
-      "#00A4FF",
-      "#00AAFF",
-      "#00AFFF",
-      "#00B5FF",
-      "#00BBFF",
-      "#00C0FF",
-      "#00C6FF",
-      "#00CCFF",
-      "#00D1FF",
-      "#00D7FF",
-      "#00DDFF",
-      "#00E2FF",
-      "#00E8FF",
-      "#00EEFF",
-      "#00F3FF",
-      "#00F9FF",
-      "#00FFFF",
-      "#00FFF9",
-      "#00FFF3",
-      "#00FFED",
-      "#00FFE8",
-      "#00FFE2",
-      "#00FFDC",
-      "#00FFD7",
-      "#00FFD1",
-      "#00FFCC",
-      "#00FFC6",
-      "#00FFC0",
-      "#00FFBB",
-      "#00FFB5",
-      "#00FFAF",
-      "#00FFA9",
-      "#00FFA4",
-      "#00FF9E",
-      "#00FF99",
-      "#00FF93",
-      "#00FF8D",
-      "#00FF88",
-      "#00FF82",
-      "#00FF7C",
-      "#00FF76",
-      "#00FF71",
-      "#00FF6B",
-      "#00FF66",
-      "#00FF60",
-      "#00FF5A",
-      "#00FF54",
-      "#00FF4F",
-      "#00FF49",
-      "#00FF43",
-      "#00FF3E",
-      "#00FF38",
-      "#00FF32",
-      "#00FF2D",
-      "#00FF27",
-      "#00FF21",
-      "#00FF1C",
-      "#00FF16",
-      "#00FF11",
-      "#00FF0B",
-      "#00FF05",
-      "#00FF00",
-      "#04FF00",
-      "#08FF00",
-      "#0CFF00",
-      "#11FF00",
-      "#15FF00",
-      "#19FF00",
-      "#1DFF00",
-      "#22FF00",
-      "#26FF00",
-      "#2AFF00",
-      "#2EFF00",
-      "#33FF00",
-      "#37FF00",
-      "#3BFF00",
-      "#3FFF00",
-      "#44FF00",
-      "#48FF00",
-      "#4CFF00",
-      "#50FF00",
-      "#54FF00",
-      "#59FF00",
-      "#5DFF00",
-      "#61FF00",
-      "#66FF00",
-      "#6AFF00",
-      "#6EFF00",
-      "#72FF00",
-      "#76FF00",
-      "#7BFF00",
-      "#7FFF00",
-      "#83FF00",
-      "#88FF00",
-      "#8CFF00",
-      "#90FF00",
-      "#94FF00",
-      "#99FF00",
-      "#9DFF00",
-      "#A1FF00",
-      "#A5FF00",
-      "#AAFF00",
-      "#AEFF00",
-      "#B2FF00",
-      "#B6FF00",
-      "#BBFF00",
-      "#BFFF00",
-      "#C3FF00",
-      "#C7FF00",
-      "#CCFF00",
-      "#D0FF00",
-      "#D4FF00",
-      "#D8FF00",
-      "#DDFF00",
-      "#E1FF00",
-      "#E5FF00",
-      "#E9FF00",
-      "#EEFF00",
-      "#F2FF00",
-      "#F6FF00",
-      "#FAFF00",
-      "#FFFF00",
-      "#FFFB00",
-      "#FFF800",
-      "#FFF400",
-      "#FFF100",
-      "#FFED00",
-      "#FFEA00",
-      "#FFE700",
-      "#FFE300",
-      "#FFE000",
-      "#FFDD00",
-      "#FFD900",
-      "#FFD600",
-      "#FFD200",
-      "#FFCF00",
-      "#FFCB00",
-      "#FFC800",
-      "#FFC500",
-      "#FFC100",
-      "#FFBE00",
-      "#FFBB00",
-      "#FFB700",
-      "#FFB400",
-      "#FFB000",
-      "#FFAD00",
-      "#FFA900",
-      "#FFA600",
-      "#FFA300",
-      "#FF9F00",
-      "#FF9C00",
-      "#FF9900",
-      "#FF9500",
-      "#FF9200",
-      "#FF8E00",
-      "#FF8B00",
-      "#FF8700",
-      "#FF8400",
-      "#FF8100",
-      "#FF7D00",
-      "#FF7A00",
-      "#FF7700",
-      "#FF7300",
-      "#FF7000",
-      "#FF6C00",
-      "#FF6900",
-      "#FF6500",
-      "#FF6200",
-      "#FF5F00",
-      "#FF5B00",
-      "#FF5800",
-      "#FF5500",
-      "#FF5100",
-      "#FF4E00",
-      "#FF4A00",
-      "#FF4700",
-      "#FF4300",
-      "#FF4000",
-      "#FF3D00",
-      "#FF3900",
-      "#FF3600",
-      "#FF3300",
-      "#FF2F00",
-      "#FF2C00",
-      "#FF2800",
-      "#FF2500",
-      "#FF2200",
-      "#FF1E00",
-      "#FF1B00",
-      "#FF1700",
-      "#FF1400",
-      "#FF1100",
-      "#FF0D00",
-      "#FF0A00",
-      "#FF0600",
-      "#FF0300",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000",
-      "#FF0000"
-    ];
+  Spectrogram.prototype.pause = function() {
+    this.stop();
+    this._paused = true;
+    this._pausedAt = Date.now() - this._startedAt;
+  };
 
-    return colors[index];
+  Spectrogram.prototype.resume = function(offset) {
+    var source = this._sources[0];
+    this._paused = false;
+    if (this._pausedAt) {
+		  this._startedAt = Date.now() - this._pausedAt;
+      this.connectSource(source.audioBuffer, source.audioContext);
+      this.start(offset || (this._pausedAt / 1000));
+    }
+  };
+
+  Spectrogram.prototype.clear = function(canvasContext) {
+    var source = this._sources[0];
+
+    this.stop();
+
+    if (toString.call(source.scriptNode) === '[object ScriptProcessorNode]') {
+      source.scriptNode.onaudioprocess = null;
+    }
+
+    canvasContext = canvasContext || source.canvasContext;
+    var canvas = canvasContext.canvas;
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    canvasContext._tempContext.clearRect(0, 0, canvas.width, canvas.height);
+    this._baseCanvasContext.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  Spectrogram.prototype._generateDefaultColors = function(steps) {
+    var frequency = (Math.PI) / steps;
+    var amplitude = 127;
+    var center = 128;
+    var slice = (Math.PI / 2) * 3.1;
+    var colors = [];
+
+    function toRGBString(v) {
+      return 'rgba(' + [v,v,v,1].toString() + ')';
+    }
+
+    for (var i = 0; i < steps; i++) {
+      var v = (Math.sin((frequency * i) + slice) * amplitude + center) >> 0;
+
+      colors.push(toRGBString(v>>0));
+    }
+
+    return colors;
+  };
+
+  Spectrogram.prototype._getColor = function(index) {
+    var color = this._colors[index>>0];
+
+    if (typeof color === 'undefined') {
+      color = this._colors[0];
+    }
+
+    return color;
   };
 
   if (typeof exports !== 'undefined') {
