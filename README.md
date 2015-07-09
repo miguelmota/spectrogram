@@ -8,7 +8,7 @@
 
 **[http://lab.moogs.io/spectrogram](http://lab.moogs.io/spectrogram)**
 
-<img src="./examples/images/grayscale.png" width="360">
+<img src="./example/images/grayscale.png" width="360">
 
 # Install
 
@@ -87,7 +87,7 @@ var spectro = Spectrogram(..., {
 });
 ```
 
-<img src="./examples/images/color.png" width="360">
+<img src="./example/images/color.png" width="360">
 
 # License
 
