@@ -42,7 +42,7 @@ request.responseType = 'arraybuffer';
 
 request.onload = function() {
   audioContext.decodeAudioData(request.response, function(buffer) {
-    spectro.addSource(buffer, audioContext);
+    spectro.connectSource(buffer, audioContext);
     spectro.start();
   });
 };
