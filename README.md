@@ -6,7 +6,7 @@
 
 # Demo
 
-**[http://lab.moogs.io/spectrogram](http://lab.moogs.io/spectrogram)**
+**[https://lab.miguelmota.com/spectrogram](https://lab.miguelmota.com/spectrogram)**
 
 <img src="./example/images/grayscale.png" width="360">
 
