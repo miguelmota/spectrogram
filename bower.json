@@ -1,7 +1,7 @@
 {
   "name": "spectrogram",
   "main": "spectrogram.js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "https://github.com/miguelmota/spectrogram",
   "authors": [
     "Miguel Mota <miguelmota2@gmail.com>"
