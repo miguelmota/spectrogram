@@ -102,6 +102,10 @@ var spectro = Spectrogram(..., {
 
 <img src="./example/images/color.png" width="360">
 
+# Credits
+
+- [Exploring the HTML5 Web Audio: visualizing sound](http://www.smartjava.org/content/exploring-html5-web-audio-visualizing-sound)
+
 # License
 
 MIT
