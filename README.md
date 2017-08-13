@@ -8,7 +8,7 @@
 
 **[https://lab.miguelmota.com/spectrogram](https://lab.miguelmota.com/spectrogram)**
 
-<img src="./example/images/grayscale.png" width="360">
+<img src="./example/images/screenshot_grayscale.gif" width="400">
 
 # Install
 
@@ -100,7 +100,7 @@ var spectro = Spectrogram(..., {
 });
 ```
 
-<img src="./example/images/color.png" width="360">
+<img src="./example/images/screenshot_color.png" width="400">
 
 # Credits
 
