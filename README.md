@@ -16,10 +16,6 @@
 npm install spectrogram
 ```
 
-```bash
-bower install spectrogram
-```
-
 # Usage
 
 Take a look at the [full example][].
@@ -100,7 +96,7 @@ var spectro = Spectrogram(..., {
 });
 ```
 
-<img src="./example/images/screenshot_color.png" width="400">
+<img src="./example/images/screenshot_color.gif" width="400">
 
 # Credits
 
