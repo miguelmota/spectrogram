@@ -196,7 +196,7 @@
   };
 
   Spectrogram.prototype.stop = function() {
-    var source = this._sources[0];
+    var source = this._sources[Object.keys(this._sources)[0]];
     if (source && source.sourceNode) {
       source.sourceNode.stop();
     }
@@ -206,21 +206,20 @@
   Spectrogram.prototype.pause = function() {
     this.stop();
     this._paused = true;
-    this._pausedAt = Date.now() - this._startedAt;
+    this._pausedAt += Date.now() - this._startedAt;
   };
 
   Spectrogram.prototype.resume = function(offset) {
-    var source = this._sources[0];
+    var source = this._sources[Object.keys(this._sources)[0]];
     this._paused = false;
     if (this._pausedAt) {
-		  this._startedAt = Date.now() - this._pausedAt;
       this.connectSource(source.audioBuffer, source.audioContext);
       this.start(offset || (this._pausedAt / 1000));
     }
   };
 
   Spectrogram.prototype.clear = function(canvasContext) {
-    var source = this._sources[0];
+    var source = this._sources[Object.keys(this._sources)[0]];
 
     this.stop();
 
