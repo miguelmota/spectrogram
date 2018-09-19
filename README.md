@@ -31,7 +31,7 @@ var spectro = Spectrogram(document.getElementById('canvas'), {
   }
 });
 
-var audioContext = new audioContext();
+var audioContext = new AudioContext();
 var request = new XMLHttpRequest();
 request.open('GET', 'audio.mp3', true);
 request.responseType = 'arraybuffer';
