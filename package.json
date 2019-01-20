@@ -1,6 +1,6 @@
 {
   "name": "spectrogram",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Audio spectrogram in canvas.",
   "main": "spectrogram.js",
   "directories": {
@@ -28,7 +28,7 @@
   },
   "license": {
     "type": "MIT",
-    "url": "https://github.com/miguelmota/spectrogram/blob/master/LICENSE.md"
+    "url": "https://github.com/miguelmota/spectrogram/blob/master/LICENSE"
   },
   "bugs": {
     "url": "https://github.com/miguelmota/spectrogram/issues"

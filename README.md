@@ -1,24 +1,34 @@
+<h3 align="center">
+  <br />
+  <img src="https://user-images.githubusercontent.com/168240/51434525-5c4ebb80-1c17-11e9-9adc-5479d074adf1.png" alt="logo" width="600" />
+  <br />
+  <br />
+  <br />
+</h3>
+
 # spectrogram
 
 > Audio spectrogram in canvas.
 
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/miguelmota/spectrogram/master/LICENSE) [![Build Status](https://travis-ci.org/miguelmota/spectrogram.svg?branch=master)](https://travis-ci.org/miguelmota/spectrogram) [![dependencies Status](https://david-dm.org/miguelmota/spectrogram/status.svg)](https://david-dm.org/miguelmota/spectrogram) [![NPM version](https://badge.fury.io/js/spectrogram.svg)](http://badge.fury.io/js/spectrogram)
+
 [![NPM](https://nodei.co/npm/spectrogram.png)](https://nodei.co/npm/spectrogram)
 
-# Demo
+## Demo
 
 **[https://lab.miguelmota.com/spectrogram](https://lab.miguelmota.com/spectrogram)**
 
 <img src="./example/images/screenshot_grayscale.gif" width="400">
 
-# Install
+## Install
 
 ```bash
 npm install spectrogram
 ```
 
-# Usage
+## Getting started
 
-Take a look at the [full example][].
+Take a look at the [full example](example/).
 
 ##### Spectrogram of an audio file buffer.
 
@@ -98,12 +108,10 @@ var spectro = Spectrogram(..., {
 
 <img src="./example/images/screenshot_color.gif" width="400">
 
-# Credits
+## Credits
 
 - [Exploring the HTML5 Web Audio: visualizing sound](http://www.smartjava.org/content/exploring-html5-web-audio-visualizing-sound)
 
-# License
+## License
 
-MIT
-
-[full example]: example/
+[MIT](LICENSE)
